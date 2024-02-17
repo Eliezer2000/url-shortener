@@ -8,6 +8,6 @@ import (
 
 func SetupRouter() *chi.Mux {
 	router := chi.NewRouter()
-	router.Get("Hello", server.TestHandler())
+	router.Get("/Hello", server.TestHandler())
 	return router
 }
