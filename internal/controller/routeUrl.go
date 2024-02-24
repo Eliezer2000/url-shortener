@@ -3,12 +3,9 @@ package controller
 import (
 	"crud-app/internal/service"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"net/http"
-	"net/url"
 )
 
 type URLController struct {
@@ -44,27 +41,24 @@ func (urlController URLController) StoreShortUrlHandler(w http.ResponseWriter, r
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	_, err = url.ParseRequestURI(urlRequest.Url)
+
+	shortUrl, err := urlController.service.StoreShortURL(urlRequest.Url)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	shortUrl := generateRandomURL()
-	formatteUrl := fmt.Sprintf("www.%s.com", shortUrl)
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(formatteUrl))
+	w.Write([]byte(shortUrl))
 }
 
 func (urlController URLController) GetShortURLHandler(w http.ResponseWriter, r *http.Request){
+	shortUrl := r.URL.Path[len("/url/"):]
+	originalUrl, exists := urlController.service.GetShortURL(shortUrl)
+	if !exists {
+		http.Error(w, "URL not found", http.StatusNotFound)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("success"))
+	w.Write([]byte(originalUrl))
 }
 
-func generateRandomURL() string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyz")
-	b := make([]byte, 7)
-	for i := range b {
-		b[i] = byte(letters[rand.Intn(len(letters))])
-	}
-	return string(b)
-}
